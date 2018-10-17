@@ -1,0 +1,63 @@
+\documentclass[12pt, letterpaper]{article}
+\begin{document}
+
+\section{Threading}
+
+\subsection{Number of Threads}
+
+The program is designed to make use of 5 total threads.
+
+\subsubsection{Main Tread}
+\paragraph{}
+The main thread is responsible for updating the queues with new tasks. This will be facilitated with the implimentation of a priority queue. This allows the main thread to read in the data from the input file, and order by time that the customer enters the queue. This allows for an optimized way of keeping track of start times, and the next person to start is always going to be at the front of the priority queue.
+
+\subsubsection{Worker Threads}
+\paragraph{}
+The 4 other threads will be worker threads that will access their work loads from the queues populated by the main thread. These threads will have to check the start of the buisness queue (requires it to be locked), if it has a customer remove the customer from the queue (unlock the queue), if not check the economy queue (lock the economy queue), check if someone is in the economy queue, if it has a customer remove the customer from the queue (then unlock the queue), otherwise repeat.
+
+
+\subsection{Thread Independence}
+\paragraph{}
+Do the threads work independently? Or is there an overall "controller" thread?
+
+\paragraph{}
+The threads all work independently. They all independently access the queue, that is unlocked and locked through the usage of mutexes. The process occuring here is simillar to a producer-consumer model. The main thread will take input from the input file, and generate work for the 4 worker threads to do.
+
+\subsection{Mutual Exclusion}
+\paragraph{}
+How many mutexes are you going to use? Specify the operation that each mutex will guard.
+
+\paragraph{}
+There will be a total of 2 mutexes used in the program. This is required to ensure that the buisness and economy classes don't have concurrent, unintended access causesing data duplication, or data loss. On the queue's the mutexes will guard inside the peek() and the pop() calls to the queue.
+
+\section{Data Modeling}
+
+\paragraph{}
+In this section I cover how the customers are represented in the system. As well as what data structures are used to facilitate the needs of the system.
+
+\paragraph{}
+Customers are represented in the system by a struct containing all information about that customer. Once read from a file the cusomter information flows through the system in two phases.
+
+\paragraph{Phase 1}
+The customers arival time hasn't passed, so the customers are sitting in a priority queue sorted by arrival time.
+
+\paragraph{Phase 2}
+The customers arrival time has passed, and they have been moved from the top of the priority queue and have been moved either into the buisness or economy queue, depending on how they were defined in the input file.
+
+\subsection{Handling Concurrency}
+\paragraph{}
+How are you going to ensure that data structures in your program will not be modified concurrently?
+
+\paragraph{}
+To preven the concurrent access of data I employ the use of mutexes. To wrap around the calls to the queue and priority queue interfaces.
+
+
+\paragraph{}
+How many convars are you going to use? Uhhhhhhhhhhhhhhhhhhhhhhh
+
+\section{Program Overview}
+
+\paragraph{}
+If clerk i finishes, clerk i will lock the buisnessQueueMutex and check the buisness queue. If there is something in the queue, clerk i will take that customer. Clerk i unlocks buisnessQueueMutex, clerk i locks economyQueueMutex and checks the economy queue. If there is something in the queue, clerk i will take the customer. Clerk i unlocks the mutex, and repeats if no customer was picked up.
+
+\end{document}

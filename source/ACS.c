@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 /*
  * @short
@@ -10,7 +11,7 @@
  * ...
  */
 typedef struct data_s {
-	
+	//TODO define data to be stored	
 } data_s;
 
 
@@ -71,29 +72,46 @@ data_s queue_peek(Queue * queue);
 
 void queue_psh(Queue * queue, data_s data) {
 	q_node * new_qnode = (q_node *) malloc(sizeof(q_node));
-	if(queue->head == NULL) {
-		queue->head = 
+	
+	if(new_qnode == NULL) { // Malloc Error
+		fprintf(stderr, "Error: Kernel couldn't provide resources requested");
+		exit(1);
+	}
+
+	new_qnode->next = NULL;
+	new_qnode->prev = NULL;
+	new_qnode->data = data;
+
+	if(queue->head == NULL)
+		queue->head = queue->tail = new_qnode;
+	else {
+		q_node * second_last = queue->tail;
+		second_last->next = new_qnode;
+		new_qnode->prev = second_last;
+	}
 }
 
 data_s queue_pop(Queue * queue) {
-	data_s data; //TODO empty initialize
+	data_s data;
+	memset(&data, 0, sizeof(data_s));
 	
 	if(queue->head == NULL) {
 		return data;
 	}
 
-	data = queue->head.data;
-	queue->head = queue->head.next;
+	data = queue->head->data;
+	queue->head = queue->head->next;
 
 	return data;
 }
 
 data_s queue_peek(Queue * queue) {
 	if(queue->head == NULL) {
-		data_s data; //TODO empty intialize
+		data_s data;
+		memset(&data, 0, sizeof(data_s));
 		return data;
 	}
-	return queue->head.data;
+	return queue->head->data;
 }
 
 int main(int argc, char ** argv) {

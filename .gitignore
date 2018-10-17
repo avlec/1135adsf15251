@@ -1,3 +1,6 @@
 .*.swp
 *.o
+*.aux
+*.log
+*.pdf
 build/ACS

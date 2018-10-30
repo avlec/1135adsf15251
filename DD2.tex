@@ -1,0 +1,71 @@
+\documentclass[12pt, letterpaper]{article}
+\usepackage{blindtext}
+\title{Airline Check-in System\\Design Document\\CSC360 Assignment 2}
+\date{2018, October}
+\author{Alec Cox\\V00846488}
+
+\begin{document}
+
+\maketitle
+
+\section{Threading}
+\paragraph{}
+The program will make use of a minimum of 5 threads, these are required to support the core functionality of the program. Any aditional threads are used to represent the customers. These customer threads will pop in and out of existance as the program runs, from when they're created by the Main thread until they have finished being served by the Clerk thread. All of the 5 main threads run independently. The Main thread oversees the creation of Customer threads, and the clerk thread instantiates the start of their execution, which then is monitored by the Clerk thread until the Customer thread terminates.
+
+\subsection{Main Tread}
+\paragraph{}
+The Main thread is responsible for creating the Customer threads. From the input file the Main thread will place customer information into a priority queue that keeps track of the customer info, and allows direct access to the newest arrival time. This means that the priority queue will be sorted based on earliest arrival time at the root of the priority queue. The main thread will poll the priority queue holding the customer information and pull off any customers which arrival time is now equal to or just past the current time, and then append them to the Buisness or Economy queue.
+
+\subsection{Customer Threads}
+The Customer threads are created by the Main thread as specified by the given input file. These threads are then sit idle in the queue until they can be looked after by a Clerk thread. When they are being looked after by a Clerk, the clerk is put to sleep. When their time with the clerk thread has expired (as specified in the input file), the thread will allow the Clerk thread to resume then terminate.
+
+\subsection{Clerk Threads}
+\paragraph{}
+The clerk threads are responsible for looking after the customers that are waiting inside the queues. They will be serving at most one customer at a time. When they need a customer to serve, they will use the buisness and the economy queues to determine which customer to serve next. When they pick a customer from either queue, the customer will be awoken by this Clerk, and the Customer the Clerk will go to sleep, and await it's reawakening by the Customer thread.
+
+
+\section{Thread Independence}
+\paragraph{}
+Thread independence will be ensured using Mutexes as well as Conditional variables. This section of the document will delve into how both concurrency strucutres are used in this program.
+
+\subsection{Mutual Exclusion}
+\paragraph{}
+Mutual exclusion will be used to guard against which thread has access to the queues at any given moment. There will be two mutexes that are used to block access to multiple clerks to a signle queue at any given point in time.
+
+\subsection{Conditional Variables}
+\paragraph{}
+The program employs the use of 6 conditional variables. Four of those variables are used for each of the Clerk threads, and the other two are used for the queues. The Customer threads when they start will be in a waiting state, in their appropriate queues. When a Clerk thread is not idle, and needs a customer it will look into one of the queues, start the next Customer thread up from its waiting state, and the Clerk will enter the waiting state. The Customer will run for its alloted time, and then before it exits it will free the Clerk thread, and the cycle can repeat.
+
+\paragraph{}
+The Conditional variables on the queues will represent the customers waiting in line. This will allow for the customers that are waiting to be started and jump right into their allocated running time when the Clerk wakens them. The Conditional variables on each of the Clerks will represent if they are serving a Customer or are Ready to serve a customer. If the Clerk thread is asleep it has an active Customer, and when the Clerk thread is active it is searching for a Customer.
+
+\paragraph{}
+When the Customer thread is resumed after the pthread\_cond\_wait() call, it will start its countdown of its remaining execution time, and continue running until the remaining execution time hits zero. At that point the Customer thread will have signaled the appropriate Clerk thread to wake up. When the Clerk thread wakes up, it will begin looking for a new Customer to serve. Meanwhile in the background, the Customer thread will exit whenever it's scheduled to run.
+
+\section{Data Modeling}
+\paragraph{}
+The customers are represented in the system by a struct containing all the information required to create that customer when it arrives in a priortiy queue managed by the main thread. This priority queue is organized by earliest arrival time, meaning the next customer to arrive will be at the root of the priority queue. When the customer's arrival time has come or slightly passed, the data involving the customer is passed to a new idle Customer thread. That is then passed into either the Buisness or Economy queue to wait to be picked up by a clerk thread. 
+
+\section{Program Overview}
+\paragraph{}
+This section of the document is used to help understand how a Customer exists in the program and how they're handled throughout the program.
+
+\begin{enumerate}
+	\item The Main thread checks the priority queue for customers. When it sees Customer i has arrival time is now or has just past, it appends it to the buisness or economy queue based off of the Customers information.
+
+	\item The Main thread removes Customer i's information from the data structure. And creates a thread, Customer thread i, to represent that Customer.
+
+	\item The Main thread then passes the Customer i's information to Customer thread i. Customer thread i's state is initially set to idle. The Main thread places it on the queue appropriate from what it saw in the Customer information data.
+
+	\item Customer i sits in the queue until there is a clerk that instantiates service to it.
+
+	\item Clerk j is ready to service a Customer, so it selects by priority from the two queues Customer i.
+	
+	\item Clerk j gets Customer thread i to start execution of its work section, it also sets Clerk j's flag to busy.
+			
+	\item Clerk j waits for Customer thread i to finish execution which is indicated by returning Clerk j's flag to ready.
+\end{enumerate}
+
+\paragraph{Short}
+Clerk j services Customer i, when the queues have been given customers from the Main thread.
+\end{document}

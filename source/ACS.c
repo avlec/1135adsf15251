@@ -2,125 +2,142 @@
 #include <stdio.h>
 #include <string.h>
 
-/*
- * @short
- * Data structure for data structure usage.
- * @detailed
- * t1
- * t2
- * ...
- */
-typedef struct data_s {
-	//TODO define data to be stored	
-} data_s;
+#include <pthread.h>
 
+//#include "avlec.h"
+#include "ACS.h"
+#include "Queue.h"
+#include "Lib.h"
+#include "PriorityQueue.h"
 
-/*
- * Priority Queue Implimentation
- */
-typedef struct pq_node {
-	data_s data;
-	struct pq_node * left_child;
-	struct pq_node * right_child;
-} pq_node;
+/* PThread Boys */
 
-typedef struct PriorityQueue {
-	pq_node * root;
-	void * compare_function;
-	size_t size;
-} PriorityQueue;
+void * clerk(void * param);
+void * customer(void * param);
 
-void pqueue_psh(PriorityQueue * pq, data_s data);
-data_s pqueue_pop(PriorityQueue * pq);
-data_s pqueue_peek(PriorityQueue * pq);
+pthread_t clerk1;
+pthread_mutex_t clerk1_m;
+pthread_cond_t clerk1_c;
 
+pthread_t clerk2;
+pthread_mutex_t clerk2_m;
+pthread_cond_t clerk2_c;
 
-void pqueue_psh(PriorityQueue * pq, data_s data) {
-	// Complex.	
+pthread_t clerk3;
+pthread_mutex_t clerk3_m;
+pthread_cond_t clerk3_c;
+
+pthread_t clerk4;
+pthread_mutex_t clerk4_m;
+pthread_cond_t clerk4_c;
+
+pthread_mutex_t bsns_queue_mutex;
+pthread_cond_t bsns_queue_cond;
+Queue bsns_c_queue;
+
+pthread_mutex_t econ_queue_mutex;
+pthread_cond_t econ_queue_cond;
+Queue econ_c_queue;
+
+/* Reading Input (Easy Money) */
+
+Customer customerizeLine(char * input_line) {
+	Customer customer;
+	int type;
+	sscanf(input_line, "%d:%d,%d,%d", &customer.uid,
+								 &type,
+								 &customer.arrival_time,
+								 &customer.service_time);
+	customer.type = (type == 1) ? 'B' : 'E';
+	return customer;
 }
 
-data_s pqueue_pop(PriorityQueue * pq) {
-	data_s data;
-	// Complex.
-	return data;
-}
+#define error_tester(); fprintf(stderr, "Testing execution in %s in function %s at line %d\n", __FILE__, __func__, __LINE__);
 
-data_s pqueue_peek(PriorityQueue * pq) {
-	data_s data;
-	// easy
-	return data;
-}
+unsigned int fget_customers(FILE * in, Customer ** customer_list) {
+	char buffer[128];
 
-/*
- *	Queue Implimentation
- */
-typedef struct q_node {
-	data_s data;
-	struct q_node * next;
-	struct q_node * prev;
-} q_node;
-
-typedef struct Queue {
-	size_t q_size;
-	q_node * head;
-	q_node * tail;
-} Queue;
-
-void queue_psh(Queue * queue, data_s data);
-data_s queue_pop(Queue * queue);
-data_s queue_peek(Queue * queue);
-
-void queue_psh(Queue * queue, data_s data) {
-	q_node * new_qnode = (q_node *) malloc(sizeof(q_node));
-	
-	if(new_qnode == NULL) { // Malloc Error
-		fprintf(stderr, "Error: Kernel couldn't provide resources requested");
+	if(in == NULL) {
+		error_handler(ERROR_fopen);
 		exit(1);
 	}
 
-	new_qnode->next = NULL;
-	new_qnode->prev = NULL;
-	new_qnode->data = data;
+	// Get first line (number of customers)
+	fgets(buffer, 128, in);
+	int total_customers = 0;
+	sscanf(buffer, "%d", &total_customers);
 
-	if(queue->head == NULL)
-		queue->head = queue->tail = new_qnode;
-	else {
-		q_node * second_last = queue->tail;
-		second_last->next = new_qnode;
-		new_qnode->prev = second_last;
+	if((*customer_list) == NULL) {
+		error_tester();
+		(*customer_list) = (Customer *) malloc(sizeof(Customer)*total_customers);
+	} else {
+		error_handler(ERROR_generic);
 	}
-}
-
-data_s queue_pop(Queue * queue) {
-	data_s data;
-	memset(&data, 0, sizeof(data_s));
-	
-	if(queue->head == NULL) {
-		return data;
+	if((*customer_list) == NULL) {
+		error_handler(ERROR_malloc);
 	}
 
-	data = queue->head->data;
-	queue->head = queue->head->next;
-
-	return data;
-}
-
-data_s queue_peek(Queue * queue) {
-	if(queue->head == NULL) {
-		data_s data;
-		memset(&data, 0, sizeof(data_s));
-		return data;
+	// Get customers
+	int i = 0;
+	while(1) {
+		char * test = fgets(buffer, 128, in);
+		if(feof(in)) break;
+		if(test == NULL || i >= total_customers) {
+			error_handler(ERROR_fgets);
+			exit(1);
+		}
+		(*customer_list)[i++] = customerizeLine(buffer);
 	}
-	return queue->head->data;
+	return total_customers;
 }
 
 int main(int argc, char ** argv) {
 	int running = 1;
+
+
+	if(argc != 2) {
+		printf("Expected usage: ./ACS <text file>\n");
+		exit(1);
+	}
 	
+	Customer * customer_list = NULL;
+	int total_customers;
+
 	{ // Parse Input
+		FILE * in = fopen(argv[1], "r");
+		total_customers = fget_customers(in, &customer_list);
+		fclose(in);
 	}
 
-	while(running) {
-		
+	PriorityQueue pq;
+	pq.head = NULL;
+	pq.length = 0;
+	
+	printf("Adding\n");
+	for(int i = 0; i < total_customers; ++i) {
+		print_customer(customer_list[i]);
+		pq_push(&pq, customer_list[i]);
 	}
+	printf("Now removing\n");
+	for(int i = 0; i < total_customers; ++i) {
+		print_customer(pq_pop(&pq));
+	}
+
+
+	while(running) {
+		// while top customers arrival time has passed
+		// 		remove customer from pq
+		// 		add to proper q
+		// end
+	}
+}
+
+void * clerk(void * param) {
+	printf("Press F to pay respects");
+	return NULL;
+}
+
+void * customer(void * param) {
+	printf("Press F to pay respects");
+	return NULL;
 }

@@ -16,60 +16,80 @@
 void * clerk(void * param);
 void * customer(void * param);
 
-pthread_t clerk1;
-pthread_mutex_t clerk1_m;
-pthread_cond_t clerk1_c;
+typedef struct Clerk {
+	pthread_t 		thread;
+	pthread_mutex_t mutex;
+	pthread_cond_t 	convar;
+} Clerk;
 
-pthread_t clerk2;
-pthread_mutex_t clerk2_m;
-pthread_cond_t clerk2_c;
+Clerk clerk1;
+Clerk clerk2;
+Clerk clerk3;
+Clerk clerk4;
 
-pthread_t clerk3;
-pthread_mutex_t clerk3_m;
-pthread_cond_t clerk3_c;
+/* Synchronous (Thread Safe) Queues */
 
-pthread_t clerk4;
-pthread_mutex_t clerk4_m;
-pthread_cond_t clerk4_c;
+typedef struct SynchronousQueue {
+	pthread_mutex_t mutex;
+	pthread_cond_t  convar;
+	Queue 			queue;
+} SynchronousQueue;
 
-/* Queues and Protective Structures */
+/* Thread safe wrapper functions */
+void sq_push(SynchronousQueue * squeue, Customer customer);
+Customer sq_pop(SynchronousQueue * squeue);
+Customer sq_peek(SynchronousQueue * squeue);
 
-pthread_mutex_t bsns_queue_mutex;
-pthread_cond_t bsns_queue_cond;
-Queue bsns_c_queue;
+void sq_push(SynchronousQueue * squeue, Customer customer) {
+	return;
+}
 
-pthread_mutex_t econ_queue_mutex;
-pthread_cond_t econ_queue_cond;
-Queue econ_c_queue;
+Customer sq_pop(SynchronousQueue * squeue) {
+	Customer customer;
 
-/* Reading Input (Easy Money) */
+	return customer;
+}
 
+Customer sq_peek(SynchronousQueue * squeue) {
+	Customer customer;
+
+	return customer;
+}
+
+
+SynchronousQueue buisness;
+SynchronousQueue economy;
 
 int main(int argc, char ** argv) {
 	int running = 1;
 
-
+// Check for appropriate commandline arguments.
 	if(argc != 2) {
 		printf("Expected usage: ./ACS <text file>\n");
 		exit(1);
 	}
-	
+
+// Setup Holding structure for customers	
 	Customer * customer_list = NULL;
 	int total_customers;
-
-	{ // Parse Input
-		FILE * in = fopen(argv[1], "r");
-		total_customers = fget_customers(in, &customer_list);
-		fclose(in);
+// Parse Customers from Input File and place  into customer_list
+	}	
+	FILE * in = fopen(argv[1], "r");
+	total_customers = fget_customers(in, &customer_list);
+	fclose(in);
 	}
 
+// Initalize the Priority Queue
 	PriorityQueue pq = PRIORITY_QUEUE_INITIALIZER;
-	
+
+// Add customers to Priority Queue
 	printf("Adding\n");
 	for(int i = 0; i < total_customers; ++i) {
 		print_customer(customer_list[i]);
 		pq_push(&pq, customer_list[i]);
 	}
+
+// Remove customers from Priority Queue to test ordering.
 	printf("Now removing\n");
 	for(int i = 0; i < total_customers; ++i) {
 		print_customer(pq_pop(&pq));
@@ -84,11 +104,19 @@ int main(int argc, char ** argv) {
 	}
 }
 
+/*
+ *
+ *
+ */
 void * clerk(void * param) {
 	printf("Press F to pay respects");
 	return NULL;
 }
 
+/*
+ *
+ *
+ */
 void * customer(void * param) {
 	printf("Press F to pay respects");
 	return NULL;

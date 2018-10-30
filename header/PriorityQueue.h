@@ -13,6 +13,7 @@ typedef struct PriorityQueue {
 	unsigned int length;
 } PriorityQueue;
 
+#define PRIORITY_QUEUE_INITIALIZER { .head = NULL, .length = 0 }
 
 void pq_push(PriorityQueue * pqueue, Customer customer);
 Customer pq_pop(PriorityQueue * pqueue); 

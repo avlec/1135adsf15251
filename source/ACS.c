@@ -109,9 +109,7 @@ int main(int argc, char ** argv) {
 		fclose(in);
 	}
 
-	PriorityQueue pq;
-	pq.head = NULL;
-	pq.length = 0;
+	PriorityQueue pq = PRIORITY_QUEUE_INITIALIZER;
 	
 	printf("Adding\n");
 	for(int i = 0; i < total_customers; ++i) {

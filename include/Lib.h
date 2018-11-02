@@ -7,7 +7,16 @@ typedef enum ErrorType {
 	ERROR_fgets,
 	ERROR_malloc,
 	ERROR_calloc,
-	ERROR_realloc
+	ERROR_realloc,
+
+	ERROR_nanosleep,
+
+	ERROR_pthread_mutexattr_init,
+	ERROR_pthread_mutex_init,
+	ERROR_pthread_condattr_init,
+	ERROR_pthread_cond_init,
+	ERROR_pthread_attr_init,
+	ERROR_pthread_create
 } ErrorType;
 
 #define error_handler(x) _error_handler(x, __func__, __FILE__, __LINE__)

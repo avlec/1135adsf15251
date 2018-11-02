@@ -18,7 +18,7 @@ void q_push(Queue * queue, Customer customer) {
 }
 
 Customer p_pop(Queue * queue) {
-	Customer customer;
+	Customer customer = CUSTOMER_INITIALIZER;
 	if(queue->head != NULL) {
 		customer = queue->head->customer;
 		QNode * temp = queue->head;
@@ -29,7 +29,7 @@ Customer p_pop(Queue * queue) {
 }
 
 Customer q_peek(Queue * queue) {
-	Customer customer;
+	Customer customer = CUSTOMER_INITIALIZER;
 	if(queue->head != NULL)
 		customer = queue->head->customer;
 	return customer;

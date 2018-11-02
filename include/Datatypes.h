@@ -14,6 +14,9 @@ typedef struct Customer {
 	// TODO maybe some way to reference thread.
 } Customer;
 
+#define CUSTOMER_INITIALIZER { .uid = 0, .type = 'U', .arrival_time = 0, .service_time = 0 }
+
 void print_customer(Customer customer);
+int check_customer(Customer customer);
 
 #endif

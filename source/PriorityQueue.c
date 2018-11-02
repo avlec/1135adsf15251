@@ -42,7 +42,11 @@ void pq_push(PriorityQueue * pqueue, Customer customer) {
 }
 
 Customer pq_pop(PriorityQueue * pqueue) {
-	Customer customer = pqueue->head->customer; // Get return val
+	Customer customer = CUSTOMER_INITIALIZER;
+	if(pqueue->head == NULL) // invalid remove
+		return customer;
+
+	customer = pqueue->head->customer; // Get return val
 	PQNode * temp = pqueue->head; // Keep copy to free
 	pqueue->head = pqueue->head->next; // Update pq
 	free(temp); // Free old head
@@ -50,5 +54,8 @@ Customer pq_pop(PriorityQueue * pqueue) {
 }
 
 Customer pq_peek(PriorityQueue * pqueue) {
+	Customer customer = CUSTOMER_INITIALIZER;
+	if(pqueue->head == NULL) // invalid peek
+		return customer;
 	return pqueue->head->customer;
 }

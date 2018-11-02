@@ -9,3 +9,9 @@ void print_customer(Customer customer) {
 			customer.arrival_time,
 			customer.service_time);
 }
+
+int check_customer(Customer customer) {
+	if(customer.type != 'B' || customer.type != 'E')
+		return -1;
+	return 0;
+}

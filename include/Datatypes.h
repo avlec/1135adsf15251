@@ -1,5 +1,8 @@
 #ifndef DATATYPES_H
 #define DATATYPES_H
+
+#include <pthread.h> 
+
 /*
  * uid 			: unique customer id
  * type 		: indicates buisness or economy, either 'B' or 'E'
@@ -11,7 +14,7 @@ typedef struct Customer {
 	char type;
 	unsigned int arrival_time;
 	unsigned int service_time;
-	// TODO maybe some way to reference thread.
+	pthread_t thread;
 } Customer;
 
 #define CUSTOMER_INITIALIZER { .uid = 0, .type = 'U', .arrival_time = 0, .service_time = 0 }

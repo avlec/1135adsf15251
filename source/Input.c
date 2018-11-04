@@ -5,6 +5,15 @@
 #include "Input.h"
 #include "Lib.h"
 
+unsigned int read_input(Customer ** customer_list, char * filename) {
+	FILE * inputfile = fopen(filename, "r");
+	if(inputfile == NULL)
+		error_handler(ERROR_fopen);
+	unsigned int total_customers = fget_customers(inputfile, customer_list);
+	fclose(inputfile);
+	return total_customers;
+}
+
 Customer customerizeLine(char * input_line) {
 	Customer customer;
 	int type;

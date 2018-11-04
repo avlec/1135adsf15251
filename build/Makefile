@@ -3,11 +3,14 @@ CFLAGS=-g -Wall -Werror -ansi -std=c99 -pthread -lrt -D__DEBUG
 SRC=../source/
 HDR=../include/
 INCLUDE_DIR=-I../include/
-OBJECT_LIST=Queue.o PriorityQueue.o Input.o Datatypes.o Lib.o
+OBJECT_LIST=Clerk.o Queue.o PriorityQueue.o Input.o Datatypes.o Lib.o
 
 
-ACS: $(SRC)ACS.c $(HDR)ACS.h Queue.o PriorityQueue.o Input.o
+ACS: $(SRC)ACS.c $(HDR)ACS.h Queue.o PriorityQueue.o Input.o Clerk.o
 	$(CC) $(CFLAGS) $(INCLUDE_DIR) $(OBJECT_LIST) $(SRC)ACS.c -o ACS
+
+Clerk.o: $(SRC)Clerk.c $(HDR)Clerk.h
+	$(CC) $(CFLAGS) -c $(INCLUDE_DIR) $(SRC)Clerk.c -o Clerk.o
 
 Queue.o: $(SRC)Queue.c $(HDR)Queue.h Datatypes.o Lib.o
 	$(CC) $(CFLAGS) -c $(INCLUDE_DIR) $(SRC)Queue.c -o Queue.o

@@ -34,3 +34,12 @@ Customer q_peek(Queue * queue) {
 		customer = queue->head->customer;
 	return customer;
 }
+
+void sync_queue_push(SynchronousQueue * squeue, Customer customer) {
+	return;
+}
+
+Customer sync_queue_pop(SynchronousQueue * squeue) {
+	Customer customer = CUSTOMER_INITIALIZER;
+	return customer;
+}

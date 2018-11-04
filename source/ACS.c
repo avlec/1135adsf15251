@@ -7,6 +7,7 @@
 #include <pthread.h>
 
 #include "ACS.h"
+#include "Clerk.h"
 #include "Queue.h"
 #include "Lib.h"
 #include "PriorityQueue.h"
@@ -14,77 +15,12 @@
 
 /* PThread Boys */
 
-void * clerk_thread(void * param);
 void * customer_thread(void * param);
-
-typedef struct Clerk {
-	pthread_t 		thread;
-	pthread_attr_t 	attr;
-	pthread_mutex_t mutex;
-	pthread_mutexattr_t mutex_attr;
-	pthread_cond_t 	cond;
-	pthread_condattr_t cond_attr;
-} Clerk;
-
-void clerk_init(Clerk * clerk, unsigned int clerk_id);
-
-void clerk_init(Clerk * clerk, unsigned int clerk_id) {
-	if(pthread_mutexattr_init(&clerk->mutex_attr)) {
-		error_handler(ERROR_pthread_mutexattr_init);
-		exit(1);
-	}
-	if(pthread_mutex_init(&clerk->mutex, &clerk->mutex_attr)) {
-		error_handler(ERROR_pthread_mutex_init);
-		exit(1);
-	}
-	if(pthread_condattr_init(&clerk->cond_attr)) {
-		error_handler(ERROR_pthread_condattr_init);
-		exit(1);
-	}
-	if(pthread_cond_init(&clerk->cond, &clerk->cond_attr)) {
-		error_handler(ERROR_pthread_cond_init);
-		exit(1);
-	}
-	if(pthread_attr_init(&clerk->attr)) {
-		error_handler(ERROR_pthread_attr_init);
-		exit(1);
-	}
-	void * args = malloc(sizeof(unsigned int));
-	if(args == NULL) {
-		error_handler(ERROR_malloc);
-		exit(1);
-	}
-	memcpy(args, &clerk_id, sizeof(unsigned int));
-	if(pthread_create(&clerk->thread, &clerk->attr, clerk_thread, args)) {
-		error_handler(ERROR_pthread_create);
-		exit(1);
-	}
-}
 
 Clerk clerk[4];
 
-/* Synchronous (Thread Safe) Queues */
-
-typedef struct SynchronousQueue {
-	pthread_mutex_t mutex;
-	pthread_cond_t  convar;
-	Queue 			queue;
-} SynchronousQueue;
-
-void sync_queue_push(SynchronousQueue * squeue, Customer customer);
-Customer sync_queue_pop(SynchronousQueue * squeue);
-
-void sync_queue_push(SynchronousQueue * squeue, Customer customer) {
-	return;
-}
-Customer sync_queue_pop(SynchronousQueue * squeue) {
-	Customer customer = CUSTOMER_INITIALIZER;
-	return customer;
-}
-
 SynchronousQueue buisness_queue;
 SynchronousQueue economy_queue;
-
 
 
 int main(int argc, char ** argv) {
@@ -98,88 +34,52 @@ int main(int argc, char ** argv) {
 
 // Setup Holding structure for customers	
 	Customer * customer_list = NULL;
-	int total_customers;
-// Parse Customers from Input File and place  into customer_list
-	{	
-	FILE * in = fopen(argv[1], "r");
-	total_customers = fget_customers(in, &customer_list);
-	fclose(in);
-	}
+	unsigned int total_customers = read_input(&customer_list, argv[1]);
 
 // Initalize the Priority Queue
 	PriorityQueue pq = PRIORITY_QUEUE_INITIALIZER;
 
 // Add customers to Priority Queue
 	printf("Adding\n");
-	for(int i = 0; i < total_customers; ++i) {
+	for(unsigned int i = 0; i < total_customers; ++i) {
 		print_customer(customer_list[i]);
 		pq_push(&pq, customer_list[i]);
-	}
-
-// Remove customers from Priority Queue to test ordering.
-	printf("Now removing\n");
-	for(int i = 0; i < total_customers; ++i) {
-		print_customer(pq_pop(&pq));
 	}
 
 	// Initialize Clerks
 	for(int i=0;i<4;++i) clerk_init(clerk+i, i);
 
-	while(running) {
-		// while top customers arrival time has passed
-		// 		remove customer from pq
-		// 		add to proper q
-		// end
-	}
-}
-
-/*
- *
- *
- */
-void * clerk_thread(void * param) {
-	unsigned int clerk_id = *((unsigned int *)param);	
-
-	struct timespec CLERK_SLEEP;
+	struct timespec MAIN_SLEEP;
 #ifdef __DEBUG
-	CLERK_SLEEP.tv_sec = 1;
-	CLERK_SLEEP.tv_nsec = 0;//100000000L;
+	MAIN_SLEEP.tv_sec = 1;
+	MAIN_SLEEP.tv_nsec = 0;//100000000L;
 #else
-	CLERK_SLEEP.tv_sec = 0;
-	CLERK_SLEEP.tv_nsec = 1000000;
+	MAIN_SLEEP.tv_sec = 0;
+	MAIN_SLEEP.tv_nsec = 1000000;
 #endif
-
-	while(1) {
-		printf("Clerk %d ready, and waiting to serve a customer.\n", clerk_id);
-		Customer customer;
-		while(1) {
-			// Check queues every 1ms
-			
-			if(nanosleep(&CLERK_SLEEP, NULL) < 0) {
-				error_handler(ERROR_nanosleep);
-				pthread_exit(NULL);
-			}
-
-			customer = sync_queue_pop(&buisness_queue);	
-			if(!check_customer(customer)) // buisness class customer found
-				break;
-
-			customer = sync_queue_pop(&economy_queue);
-			if(!check_customer(customer)) // economy class customer found
-				break;
-			fprintf(stderr, "F\n");
+	while(running) {
+		if(nanosleep(&MAIN_SLEEP, NULL) < 0) {
+			error_handler(ERROR_nanosleep);
+			pthread_exit(NULL);
 		}
-	/*	
-		pthread_mutex_lock(&clerk[clerk_id].mutex);
-		while(i_have_customer)
-			pthread_cond_wait(&clerk[clerk_id].cond, &clerk[clerk_id].lock);
-	*/
-		// start customer thread
-		// wait on my condition variable
-		// wake up and reloop	
+		while(1) {
+			// If the customers time hasn't arrived, done
+			if(check_customer(pq_peek(&pq)))
+				break;
+			
+			// Else take customer from queue
+			Customer customer = pq_pop(&pq);
+			
+			// Add customer to proper queue.
+			if(customer.type == 'B')
+				sync_queue_push(&buisness_queue, customer);
+			
+			if(customer.type == 'E')
+				sync_queue_push(&economy_queue, customer);
+		}
 	}
-	pthread_exit(0);
 }
+
 
 /*
  *

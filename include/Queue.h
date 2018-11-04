@@ -27,4 +27,13 @@ void q_push(Queue * queue, Customer customer);
 Customer p_pop(Queue * queue);
 Customer q_peek(Queue * queue);
 
+typedef struct SynchronousQueue {
+	pthread_mutex_t mutex;
+	pthread_cond_t  convar;
+	Queue 			queue;
+} SynchronousQueue;
+
+void sync_queue_push(SynchronousQueue * squeue, Customer customer);
+Customer sync_queue_pop(SynchronousQueue * squeue);
+
 #endif

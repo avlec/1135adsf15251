@@ -79,12 +79,12 @@ void * clerk_thread(void * param) {
 			customer = sync_queue_pop(&buisness_queue);	
 			if(!check_customer(customer)) // buisness class customer found
 				break;
-
+			
 			customer = sync_queue_pop(&economy_queue);
 			if(!check_customer(customer)) // economy class customer found
 				break;
-			fprintf(stderr, "F\n");
 		}
+		printf("Got customer");
 	/*	
 		pthread_mutex_lock(&clerk[clerk_id].mutex);
 		while(i_have_customer)

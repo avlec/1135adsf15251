@@ -14,6 +14,7 @@ typedef struct Customer {
 	char type;
 	unsigned int arrival_time;
 	unsigned int service_time;
+	pthread_attr_t attr;
 	pthread_t thread;
 } Customer;
 

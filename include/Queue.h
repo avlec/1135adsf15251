@@ -23,7 +23,7 @@ typedef struct Queue {
 
 #define QUEUE_INITIALIER { .head = NULL, .tail = NULL, .length = 0 }
 
-void q_push(Queue * queue, Customer customer);
+int q_push(Queue * queue, Customer customer);
 Customer p_pop(Queue * queue);
 Customer q_peek(Queue * queue);
 
@@ -33,7 +33,7 @@ typedef struct SynchronousQueue {
 	Queue 			queue;
 } SynchronousQueue;
 
-void sync_queue_push(SynchronousQueue * squeue, Customer customer);
+int sync_queue_push(SynchronousQueue * squeue, Customer customer);
 Customer sync_queue_pop(SynchronousQueue * squeue);
 
 #endif

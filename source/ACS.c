@@ -8,19 +8,17 @@
 
 #include "ACS.h"
 #include "Clerk.h"
+#include "Customer.h"
 #include "Queue.h"
 #include "Lib.h"
 #include "PriorityQueue.h"
 #include "Input.h"
 
-/* PThread Boys */
-
-void * customer_thread(void * param);
 
 Clerk clerk[4];
 
-SynchronousQueue buisness_queue;
-SynchronousQueue economy_queue;
+SynchronousQueue buisness_queue = { .queue = QUEUE_INITIALIER };
+SynchronousQueue economy_queue  = { .queue = QUEUE_INITIALIER };
 
 
 int main(int argc, char ** argv) {
@@ -40,9 +38,13 @@ int main(int argc, char ** argv) {
 	PriorityQueue pq = PRIORITY_QUEUE_INITIALIZER;
 
 // Add customers to Priority Queue
+#ifdef __DEBUG
 	printf("Adding\n");
+#endif
 	for(unsigned int i = 0; i < total_customers; ++i) {
+#ifdef __DEBUG
 		print_customer(customer_list[i]);
+#endif
 		pq_push(&pq, customer_list[i]);
 	}
 
@@ -57,37 +59,34 @@ int main(int argc, char ** argv) {
 	MAIN_SLEEP.tv_sec = 0;
 	MAIN_SLEEP.tv_nsec = 1000000;
 #endif
+	unsigned int ms_time = 0;
+
 	while(running) {
+		while(1) {
+			Customer customer = pq_peek(&pq);
+			// If no more customers done
+			if(check_customer(customer)) {
+				running = 0;
+				break;
+			}
+
+			// If the customers time hasn't arrived, done
+			if(ms_time < customer.arrival_time)
+				break;
+
+			// Else take customer from queue
+			pq_pop(&pq);
+
+			customer_init(customer);
+		}
+		fprintf(stderr, "Passed ms %d\n", ms_time);
 		if(nanosleep(&MAIN_SLEEP, NULL) < 0) {
 			error_handler(ERROR_nanosleep);
 			pthread_exit(NULL);
 		}
-		while(1) {
-			// If the customers time hasn't arrived, done
-			if(check_customer(pq_peek(&pq)))
-				break;
-			
-			// Else take customer from queue
-			Customer customer = pq_pop(&pq);
-			
-			// Add customer to proper queue.
-			if(customer.type == 'B')
-				sync_queue_push(&buisness_queue, customer);
-			
-			if(customer.type == 'E')
-				sync_queue_push(&economy_queue, customer);
-		}
+		++ms_time;
 	}
+	printf("All customers have arrived for the day.\n");
 }
 
 
-/*
- *
- *
- */
-void * customer_thread(void * param) {
-	printf("Waiting to be served!\n");
-	// sleep
-	//
-	pthread_exit(0);
-}

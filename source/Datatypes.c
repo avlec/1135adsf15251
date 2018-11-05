@@ -11,7 +11,8 @@ void print_customer(Customer customer) {
 }
 
 int check_customer(Customer customer) {
-	if(customer.type != 'B' || customer.type != 'E')
-		return -1;
-	return 0;
+	if(customer.type == 'B' || customer.type == 'E') {
+		return 0;
+	}
+	return 1;
 }

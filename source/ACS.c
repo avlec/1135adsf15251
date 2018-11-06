@@ -14,11 +14,22 @@
 #include "PriorityQueue.h"
 #include "Input.h"
 
+struct timespec MAIN_SLEEP = {
+#ifdef __DEBUG
+	.tv_sec = 1,
+	.tv_nsec = 0
+#else
+	.tv_sec = 0,
+	.tv_nsec = 1000000
+#endif
+};
+
+unsigned int ms_time = 0;
 
 Clerk clerk[4];
 
-SynchronousQueue buisness_queue = { .queue = QUEUE_INITIALIER };
-SynchronousQueue economy_queue  = { .queue = QUEUE_INITIALIER };
+SynchronousQueue buisness_queue;
+SynchronousQueue economy_queue;
 
 
 int main(int argc, char ** argv) {
@@ -30,6 +41,10 @@ int main(int argc, char ** argv) {
 		exit(1);
 	}
 
+// Setup Synchronous Queues
+	sq_init(&buisness_queue);
+	sq_init(&economy_queue);
+
 // Setup Holding structure for customers	
 	Customer * customer_list = NULL;
 	unsigned int total_customers = read_input(&customer_list, argv[1]);
@@ -38,28 +53,13 @@ int main(int argc, char ** argv) {
 	PriorityQueue pq = PRIORITY_QUEUE_INITIALIZER;
 
 // Add customers to Priority Queue
-#ifdef __DEBUG
-	printf("Adding\n");
-#endif
 	for(unsigned int i = 0; i < total_customers; ++i) {
-#ifdef __DEBUG
-		print_customer(customer_list[i]);
-#endif
 		pq_push(&pq, customer_list[i]);
 	}
 
 	// Initialize Clerks
 	for(int i=0;i<4;++i) clerk_init(clerk+i, i);
 
-	struct timespec MAIN_SLEEP;
-#ifdef __DEBUG
-	MAIN_SLEEP.tv_sec = 1;
-	MAIN_SLEEP.tv_nsec = 0;//100000000L;
-#else
-	MAIN_SLEEP.tv_sec = 0;
-	MAIN_SLEEP.tv_nsec = 1000000;
-#endif
-	unsigned int ms_time = 0;
 
 	while(running) {
 		while(1) {

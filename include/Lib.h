@@ -13,8 +13,11 @@ typedef enum ErrorType {
 
 	ERROR_pthread_mutexattr_init,
 	ERROR_pthread_mutex_init,
+	ERROR_pthread_mutex_lock,
+	ERROR_pthread_mutex_unlock,
 	ERROR_pthread_condattr_init,
 	ERROR_pthread_cond_init,
+	ERROR_pthread_cond_wait,
 	ERROR_pthread_attr_init,
 	ERROR_pthread_create
 } ErrorType;

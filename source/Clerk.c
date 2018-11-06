@@ -12,6 +12,18 @@
 #include "Queue.h"
 #include "Lib.h"
 #include "Datatypes.h"
+	
+struct timespec CLERK_SLEEP = {
+#ifdef __DEBUG
+	.tv_sec = 1,
+	.tv_nsec = 0
+#else
+	.tv_sec = 0,
+	.tv_nsec = 1000000
+#endif
+};
+
+extern unsigned int ms_time;
 
 extern SynchronousQueue buisness_queue;
 extern SynchronousQueue economy_queue;
@@ -56,43 +68,53 @@ void clerk_init(Clerk * clerk, unsigned int clerk_id) {
 void * clerk_thread(void * param) {
 	unsigned int clerk_id = *((unsigned int *)param);	
 
-	struct timespec CLERK_SLEEP;
-#ifdef __DEBUG
-	CLERK_SLEEP.tv_sec = 1;
-	CLERK_SLEEP.tv_nsec = 0;//100000000L;
-#else
-	CLERK_SLEEP.tv_sec = 0;
-	CLERK_SLEEP.tv_nsec = 1000000;
-#endif
-
 	while(1) {
-		printf("Clerk %d ready, and waiting to serve a customer.\n", clerk_id);
 		Customer customer;
 		while(1) {
 			// Check queues every 1ms
-			
 			if(nanosleep(&CLERK_SLEEP, NULL) < 0) {
 				error_handler(ERROR_nanosleep);
 				pthread_exit(NULL);
 			}
 
-			customer = sync_queue_pop(&buisness_queue);	
-			if(!check_customer(customer)) // buisness class customer found
+			sq_lock(&buisness_queue);
+			customer = sq_peek(&buisness_queue);	
+			if(!check_customer(customer))	// buisness customer found
 				break;
-			
-			customer = sync_queue_pop(&economy_queue);
-			if(!check_customer(customer)) // economy class customer found
+			sq_unlock(&buisness_queue);		// no buisness customer
+
+			sq_lock(&economy_queue);
+			customer = sq_peek(&economy_queue);
+			if(!check_customer(customer))	// economy customer found
 				break;
+			sq_unlock(&economy_queue);		// no buisness customer
 		}
-		printf("Got customer");
-	/*	
+
+		if(customer.type == 'B') {
+			sq_wake(&buisness_queue);
+		}
+		if(customer.type == 'E') {
+			sq_wake(&economy_queue);
+		}
+
+		// As per assignment spec (line 70) 
+		printf("A clerk starts serving a customer: "
+			   "start time %.2f, the customer ID %2d, "
+			   "the clerk ID %1d  \n", (float)ms_time, customer.uid, clerk_id);
+		/*	
 		pthread_mutex_lock(&clerk[clerk_id].mutex);
 		while(i_have_customer)
 			pthread_cond_wait(&clerk[clerk_id].cond, &clerk[clerk_id].lock);
 	*/
+
 		// start customer thread
 		// wait on my condition variable
 		// wake up and reloop	
+		
+		// As per assignment spec (line 71) 
+		printf("A clerk finishes serving a customer: "
+			   "end time %.2f, the customer ID %2d, "
+			   "the clerk ID %1d  \n", (float)ms_time, customer.uid, clerk_id);
 	}
 	pthread_exit(0);
 }

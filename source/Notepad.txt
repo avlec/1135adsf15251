@@ -1,0 +1,17 @@
+
+SyncQueue has 2 mutexes
+1) for data modification protection
+2) for which clerk to customer threads are using the queues
+
+Idea
+Clerk thread locks the queue
+Clerk looks at the top, if found customer
+sets identifier broadcasts to the queues cond var, then waits for signal from customer
+Customer threads check if they're the head of the queue
+Customer thread that is
+pop self from queue
+clears identifier
+unlock the queue
+service time simulated
+signal clerk to wake up
+clean up and exit

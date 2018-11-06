@@ -41,7 +41,6 @@ unsigned int fget_customers(FILE * in, Customer ** customer_list) {
 	sscanf(buffer, "%d", &total_customers);
 
 	if((*customer_list) == NULL) {
-		error_tester();
 		(*customer_list) = (Customer *) malloc(sizeof(Customer)*total_customers);
 	} else {
 		error_handler(ERROR_generic);

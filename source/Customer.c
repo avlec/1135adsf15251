@@ -1,12 +1,16 @@
 #define _POSIX_C_SOURCE 199309L
 #include "Customer.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "Queue.h"
 #include "Lib.h"
+
+extern unsigned int ms_time;
 
 extern SynchronousQueue buisness_queue;
 extern SynchronousQueue economy_queue;
@@ -41,7 +45,7 @@ void * customer_thread(void * param) {
 	
 	// Add customer to proper queue.
 	if(customer->type == 'B') {
-		int length = sync_queue_push(&buisness_queue, *customer);
+		int length = sq_push(&buisness_queue, *customer);
 		// As per assignment spec (line 69)
 		printf("A customer enters the queue: the queue 1, "
 			   "and length of the queue %2d.  \n",
@@ -49,7 +53,7 @@ void * customer_thread(void * param) {
 	}
 
 	if(customer->type == 'E') {
-		int length = sync_queue_push(&economy_queue, *customer);
+		int length = sq_push(&economy_queue, *customer);
 		// As per assignment spec (line 69)
 		printf("A customer enters the queue: the queue 0, "
 			   "and length of the queue %2d.  \n",
@@ -60,7 +64,43 @@ void * customer_thread(void * param) {
 	printf("Waiting to be served!\n");
 	
 	// wait for turn
+	// WILL HAVE A MUTEX LOCK WHEN WE GET HERE
+	// check if it's me on the queue.
+
 	for(;;);
+
+	if(customer->type == 'B') {
+		if(pthread_mutex_lock(&(buisness_queue.mutex))) {
+			error_handler(ERROR_pthread_mutex_lock);
+			exit(1);
+		}
+		while(sq_peek(&buisness_queue).uid != customer->uid)// while current top stack customer isn't me
+			if(pthread_cond_wait(&(buisness_queue.cond), &(buisness_queue.mutex))) {
+				error_handler(ERROR_pthread_cond_wait);
+				exit(1);
+			}
+		if(pthread_mutex_unlock(&(buisness_queue.mutex))) {
+			error_handler(ERROR_pthread_mutex_unlock);
+			exit(1);
+		}
+	}
+	if(customer->type == 'E') {
+// Get lock on the mutex to check self
+		if(pthread_mutex_lock(&(economy_queue.mutex))) {
+			error_handler(ERROR_pthread_mutex_lock);
+			exit(1);
+		}
+		while(0) // != customer.uid
+			if(pthread_cond_wait(&(economy_queue.cond), &(economy_queue.mutex))) {
+				error_handler(ERROR_pthread_cond_wait);
+				exit(1);
+			}
+		if(pthread_mutex_unlock(&(economy_queue.mutex))) {
+			error_handler(ERROR_pthread_mutex_unlock);
+			exit(1);
+		}
+	}
+
 
 	// countdown service timer
 	struct timespec CUST_SLEEP;

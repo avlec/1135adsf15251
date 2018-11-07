@@ -40,28 +40,12 @@ Customer q_peek(Queue * queue) {
 }
 
 void sq_init(SynchronousQueue * squeue) {
-	if(pthread_mutexattr_init(&squeue->mutexattr)) {
-		error_handler(ERROR_pthread_mutexattr_init);
-		exit(1);
-	}
-	if(pthread_mutex_init(&squeue->mutex, &squeue->mutexattr)) {
-		error_handler(ERROR_pthread_mutex_init);
-		exit(1);
-	}
 	if(pthread_mutexattr_init(&squeue->datamutexattr)) {
 		error_handler(ERROR_pthread_mutexattr_init);
 		exit(1);
 	}
 	if(pthread_mutex_init(&squeue->datamutex, &squeue->datamutexattr)) {
 		error_handler(ERROR_pthread_mutex_init);
-		exit(1);
-	}
-	if(pthread_condattr_init(&squeue->condattr)) {
-		error_handler(ERROR_pthread_condattr_init);
-		exit(1);
-	}
-	if(pthread_cond_init(&squeue->cond, &squeue->condattr)) {
-		error_handler(ERROR_pthread_cond_init);
 		exit(1);
 	}
 	squeue->queue = QUEUE_INITIALIZER;
@@ -107,22 +91,4 @@ Customer sq_peek(SynchronousQueue * squeue) {
 		exit(1);
 	}
 	return customer;
-}
-
-void sq_lock(SynchronousQueue * squeue) {
-	if(pthread_mutex_lock(&squeue->mutex)) {
-		error_handler(ERROR_pthread_mutex_lock);
-		exit(1);
-	}
-}
-
-void sq_unlock(SynchronousQueue * squeue) {
-	if(pthread_mutex_unlock(&squeue->mutex)) {
-		error_handler(ERROR_pthread_mutex_unlock);
-		exit(1);
-	}
-}
-
-void sq_wake(SynchronousQueue * squeue) {
-
 }

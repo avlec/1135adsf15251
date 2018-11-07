@@ -26,11 +26,16 @@ struct timespec MAIN_SLEEP = {
 
 unsigned int ms_time = 0;
 
+pthread_cond_t cond;
+pthread_mutex_t mutex;
 Clerk clerk[4];
 
 SynchronousQueue buisness_queue;
 SynchronousQueue economy_queue;
 
+waiting_times times;
+
+int no_more_customers = 0;
 
 int main(int argc, char ** argv) {
 	int running = 1;
@@ -48,6 +53,9 @@ int main(int argc, char ** argv) {
 // Setup Holding structure for customers	
 	Customer * customer_list = NULL;
 	unsigned int total_customers = read_input(&customer_list, argv[1]);
+
+// Initialize waiting times arrays
+	init_waiting_times(&times, total_customers);
 
 // Initalize the Priority Queue
 	PriorityQueue pq = PRIORITY_QUEUE_INITIALIZER;
@@ -79,14 +87,32 @@ int main(int argc, char ** argv) {
 
 			customer_init(customer);
 		}
+#ifdef __DEBUG
 		fprintf(stderr, "Passed ms %d\n", ms_time);
+#endif
 		if(nanosleep(&MAIN_SLEEP, NULL) < 0) {
 			error_handler(ERROR_nanosleep);
-			pthread_exit(NULL);
+			exit(EXIT_FAILURE);
 		}
 		++ms_time;
 	}
+#ifdef __DEBUG
 	printf("All customers have arrived for the day.\n");
+#endif
+	no_more_customers = 1;
+	for(int i = 0; i < 4; ++i)
+		if(pthread_join(clerk[i].thread, NULL)) {
+			error_handler(ERROR_pthread_join);
+			exit(EXIT_FAILURE);
+		}
+	printf("The average waiting time for all customers "
+		   "in the system is: %.2f seconds.  \n", calc_avg_wait_all(&times));
+	printf("The average waiting time for all customers "
+		   "in the buisness class is: %.2f seconds.  \n", calc_avg_wait_buisness(&times));
+	printf("The average waiting time for all customers "
+		   "in the economy class is: %.2f seconds.  \n", calc_avg_wait_economy(&times));
+	
+	exit(EXIT_SUCCESS);
 }
 
 

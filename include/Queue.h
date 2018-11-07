@@ -28,11 +28,6 @@ Customer p_pop(Queue * queue);
 Customer q_peek(Queue * queue);
 
 typedef struct SynchronousQueue {
-	pthread_mutex_t mutex;
-	pthread_mutexattr_t mutexattr;
-	pthread_cond_t  cond;
-	pthread_condattr_t condattr;
-	
 	pthread_mutex_t datamutex;
 	pthread_mutexattr_t datamutexattr;
 	Queue 			queue;
@@ -43,9 +38,5 @@ void sq_init(SynchronousQueue * squeue);
 int sq_push(SynchronousQueue * squeue, Customer customer);
 Customer sq_pop(SynchronousQueue * squeue);
 Customer sq_peek(SynchronousQueue * squeue);
-
-void sq_lock(SynchronousQueue * squeue);
-void sq_unlock(SynchronousQueue * squeue);
-void sq_wake(SynchronousQueue * squeue);
 
 #endif

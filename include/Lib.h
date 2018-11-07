@@ -19,7 +19,8 @@ typedef enum ErrorType {
 	ERROR_pthread_cond_init,
 	ERROR_pthread_cond_wait,
 	ERROR_pthread_attr_init,
-	ERROR_pthread_create
+	ERROR_pthread_create,
+	ERROR_pthread_join
 } ErrorType;
 
 #define error_handler(x) _error_handler(x, __func__, __FILE__, __LINE__)

@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -Wall -Werror -ansi -std=c99 -pthread -lrt #-D__DEBUG
+CFLAGS=-g -Wall -Werror -ansi -std=c99 -pthread #-lrt #-D__DEBUG
 SRC=../source/
 HDR=../include/
 INCLUDE_DIR=-I../include/

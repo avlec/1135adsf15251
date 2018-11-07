@@ -67,7 +67,7 @@ void * customer_thread(void * param) {
 		exit(1);
 	}
 	
-	add_waiting_time(&times, customer->arrival_time - ms_time, customer->type);
+	add_waiting_time(&times, ms_time - customer->arrival_time, customer->type);
 
 	// countdown service timer
 	struct timespec CUST_SLEEP;
@@ -75,38 +75,16 @@ void * customer_thread(void * param) {
 	CUST_SLEEP.tv_sec = 1*customer->service_time;
 	CUST_SLEEP.tv_nsec = 0;//100000000L;
 #else
-	CUST_SLEEP.tv_sec = 0;
-	CUST_SLEEP.tv_nsec = 1000000*customer->service_time; 
-	// TODO math for this so it works
+	CUST_SLEEP.tv_sec = customer->service_time/10;
+	CUST_SLEEP.tv_nsec = 100000000*(customer->service_time % 10); 
 #endif
-	if(nanosleep(&CUST_SLEEP, NULL) < 0) {
+	if(nanosleep(&CUST_SLEEP, NULL)) {
 		error_handler(ERROR_nanosleep);
 		pthread_exit(NULL);
 	}
-
 	free(customer);
 	pthread_exit(0);
 }
-
-
-/*
-
-	// Get lock on the mutex to check self (released by cond_wait, then acquired later)
-	pq_lock(queue);
-		
-	// Continuously check the queue while the head of the queue isn't me
-	while(sq_peek(queue).uid != customer->uid)
-		pq_cond_wait(queue);
-	
-	// LOCK ACQUIRED (clerk and regular)
-	pq_pop(queue); // remove me, i'm being served
-	pq_clear_clerkid(queue);
-
-	// Done with locks
-	pq_unlock(queue);
-	pq_clerk_unlock(queue);
-
-*/
 
 void customer_init(Customer customer) {
 	Customer * args = malloc(sizeof(Customer));

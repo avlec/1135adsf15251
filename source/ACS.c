@@ -20,7 +20,7 @@ struct timespec MAIN_SLEEP = {
 	.tv_nsec = 0
 #else
 	.tv_sec = 0,
-	.tv_nsec = 1000000
+	.tv_nsec = 100000000
 #endif
 };
 
@@ -99,6 +99,10 @@ int main(int argc, char ** argv) {
 #ifdef __DEBUG
 	printf("All customers have arrived for the day.\n");
 #endif
+	if(nanosleep(&MAIN_SLEEP, NULL) < 0) {
+		error_handler(ERROR_nanosleep);
+		exit(EXIT_FAILURE);
+	}
 	no_more_customers = 1;
 	for(int i = 0; i < 4; ++i)
 		if(pthread_join(clerk[i].thread, NULL)) {

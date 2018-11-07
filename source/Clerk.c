@@ -46,12 +46,13 @@ void * clerk_thread(void * param) {
 	Clerk * self = (Clerk *)param;	
 
 	while(1) {
-		if(no_more_customers)
-			break;
 		Customer customer = check_queues();
 		
-		if(check_customer(customer))
+		if(check_customer(customer)) {
+			if(no_more_customers)
+				break;
 			continue;	// While no customers are available, sleep
+		}
 		// Found customer
 		
 		// Set customer
@@ -63,7 +64,7 @@ void * clerk_thread(void * param) {
 		// As per assignment spec (line 70) 
 		printf("A clerk starts serving a customer: "
 			   "start time %.2f, the customer ID %2d, "
-			   "the clerk ID %1d  \n", (float)ms_time, customer.uid, self->uid);
+			   "the clerk ID %1d.  \n", (float)ms_time/10.0, customer.uid, self->uid);
 		
 		// join customer to me
 		if(pthread_join(customer.thread, NULL)) {
@@ -74,7 +75,7 @@ void * clerk_thread(void * param) {
 		// As per assignment spec (line 71) 
 		printf("A clerk finishes serving a customer: "
 			   "end time %.2f, the customer ID %2d, "
-			   "the clerk ID %1d  \n", (float)ms_time, customer.uid, self->uid);
+			   "the clerk ID %1d.  \n", (float)ms_time/10.0, customer.uid, self->uid);
 	}
 	pthread_exit(0);
 }

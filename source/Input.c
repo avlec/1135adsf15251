@@ -17,10 +17,19 @@ unsigned int read_input(Customer ** customer_list, char * filename) {
 Customer customerizeLine(char * input_line) {
 	Customer customer;
 	int type;
-	sscanf(input_line, "%d:%d,%d,%d", &customer.uid,
+	if(0 > sscanf(input_line, "%d:%d,%d,%d", &customer.uid,
 								 &type,
 								 &customer.arrival_time,
-								 &customer.service_time);
+								 &customer.service_time)) {
+		fprintf(stderr, "Invalid, customer file format\n");
+//		exit(EXIT_FAILURE);
+	}
+	if(customer.uid < 0 || customer.arrival_time < 0 || customer.service_time < 0 || !(type == 0 || type == 1)) {
+		fprintf(stderr, "Invalid, customer file format.\n");
+		fprintf(stderr, "%s", input_line);
+		fprintf(stderr, "%c:%c,%c,%c\n", (customer.uid < 0) ? 'n':'y', (!(type == 0 || type == 1)) ? 'n':'y', (customer.arrival_time < 0) ? 'n':'y', (customer.service_time < 0) ? 'n':'y');
+		exit(EXIT_FAILURE);
+	}
 	customer.type = (type == 1) ? 'B' : 'E';
 	return customer;
 }

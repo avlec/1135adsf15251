@@ -72,11 +72,14 @@ void * clerk_thread(void * param) {
 			exit(1);
 		}
 
+		printf("Joined %d\n", customer.uid);
 		// As per assignment spec (line 71) 
 		printf("A clerk finishes serving a customer: "
 			   "end time %.2f, the customer ID %2d, "
 			   "the clerk ID %1d.  \n", (float)ms_time/10.0, customer.uid, self->uid);
 	}
+	self->cid = -1;
+	printf("Clerk done\n");
 	pthread_exit(0);
 }
 

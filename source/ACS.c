@@ -99,16 +99,28 @@ int main(int argc, char ** argv) {
 #ifdef __DEBUG
 	printf("All customers have arrived for the day.\n");
 #endif
+
 	if(nanosleep(&MAIN_SLEEP, NULL) < 0) {
 		error_handler(ERROR_nanosleep);
 		exit(EXIT_FAILURE);
 	}
+	++ms_time;
+
 	no_more_customers = 1;
+	
+	while((clerk[0].cid + clerk[1].cid + clerk[2].cid + clerk[3].cid) != -4) {
+		if(nanosleep(&MAIN_SLEEP, NULL) < 0) {
+			error_handler(ERROR_nanosleep);
+			exit(EXIT_FAILURE);
+		}
+		++ms_time;
+	}
 	for(int i = 0; i < 4; ++i)
 		if(pthread_join(clerk[i].thread, NULL)) {
 			error_handler(ERROR_pthread_join);
 			exit(EXIT_FAILURE);
 		}
+
 	printf("The average waiting time for all customers "
 		   "in the system is: %.2f seconds.  \n", calc_avg_wait_all(&times));
 	printf("The average waiting time for all customers "
